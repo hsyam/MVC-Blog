@@ -17,11 +17,11 @@ class File{
     }
 
     public function exists($file){
-        return file_exists($file);
+        return file_exists($this->to($file));
     }
 
-    public function require($file){
-         require($file);
+    public function call($file){
+         require $this->to($file);
     }
 
     public function toVendor($path){

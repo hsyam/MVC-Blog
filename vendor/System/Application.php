@@ -11,11 +11,15 @@ namespace System ;
 class Application {
 
     private $container = [] ;
-    public function __construct(File $file)
+
+    private static $instance ;
+
+    private function __construct(File $file)
     {
         $this->share('file' , $file);
         $this->registerClasses();
         $this->loadHelpers();
+
     }
 
     public function registerClasses(){
@@ -24,12 +28,12 @@ class Application {
 
     public function load($class){
         if(strpos($class, 'App') === 0 ){
-            $file = $this->file->to($class . '.php');
+            $file = $class . '.php';
         }else{
-            $file = $this->file->toVendor($class .'.php');
+            $file = 'vendor/' . $class .'.php';
         }
         if($this->file->exists($file)){
-            $this->file->require($file);
+            $this->file->call($file);
         }
 
     }
@@ -38,9 +42,20 @@ class Application {
     public function run(){
 
         $this->session->start();
-
         $this->request->prepareUrl();
+        $this->file->call('App/index.php');
+        list($controller , $method , $arguments) = $this->route->getProperRoute();
+
+        $this->load->action($controller , $method , $arguments);
     }
+
+    public static function getInstance($file = null){
+        if (is_null(static::$instance)){
+            static::$instance = new self($file) ;
+        }
+        return static::$instance ;
+    }
+
 
     public function share($key , $value){
         $this->container[$key] =  $value;
@@ -82,7 +97,7 @@ class Application {
     }
 
     public function loadHelpers(){
-        $this->file->require($this->file->toVendor('helpers.php'));
+        $this->file->call('vendor/helpers.php');
     }
 
 
@@ -91,8 +106,9 @@ class Application {
             'request'       => 'System\\Http\\Request',
             'response'      => 'System\\Http\\Response',
             'session'       => 'System\\Session',
+            'route'         => 'System\\Route',
             'cookie'        => 'System\\Cookie',
-            'load'          => 'System\\Load',
+            'load'          => 'System\\Loader',
             'html'          => 'System\\Html',
             'db'            => 'System\\Database',
             'view'          => 'System\\View\\ViewFactory',

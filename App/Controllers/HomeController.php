@@ -9,7 +9,11 @@
 namespace App\Controllers;
 
 
-class HomeController
-{
+use System\Controller;
 
+class HomeController extends Controller
+{
+    public function index(){
+       echo $this->request->url();
+    }
 }
